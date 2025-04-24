@@ -7,10 +7,18 @@ import jakarta.persistence.Id;
 
 @Entity
 public class Categorie {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String nom;
     private String description;
+
+    // Getter pour ID (important !)
+    public Long getId() {
+        return id;
+    }
+
     public String getNom() {
         return nom;
     }

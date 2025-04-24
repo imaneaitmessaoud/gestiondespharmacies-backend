@@ -1,11 +1,6 @@
 package com.pharmactrl.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 public class Utilisateur {
@@ -20,6 +15,7 @@ public class Utilisateur {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    // Getters et setters
     public String getNom() {
         return nom;
     }
@@ -52,4 +48,11 @@ public class Utilisateur {
         this.motDePasse = motDePasse;
     }
 
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
 }
