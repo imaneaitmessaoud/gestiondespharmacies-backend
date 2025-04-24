@@ -1,0 +1,55 @@
+package com.pharmactrl.service;
+
+import com.pharmactrl.model.Utilisateur;
+import com.pharmactrl.repository.UtilisateurRepositoray;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class UtilisateurService {
+
+    @Autowired
+    private UtilisateurRepositoray utilisateurRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public List<Utilisateur> getAll() {
+        return utilisateurRepository.findAll();
+    }
+
+    public Optional<Utilisateur> getById(Long id) {
+        return utilisateurRepository.findById(id);
+    }
+
+    public Utilisateur create(Utilisateur utilisateur) {
+        utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
+        return utilisateurRepository.save(utilisateur);
+    }
+
+    public Utilisateur update(Long id, Utilisateur updated) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        utilisateur.setNom(updated.getNom());
+        utilisateur.setPrenom(updated.getPrenom());
+        utilisateur.setEmail(updated.getEmail());
+        utilisateur.setRole(updated.getRole());
+
+        // Si le mot de passe est modifié, le réencoder
+        if (updated.getMotDePasse() != null && !updated.getMotDePasse().isEmpty()) {
+            utilisateur.setMotDePasse(passwordEncoder.encode(updated.getMotDePasse()));
+        }
+
+        return utilisateurRepository.save(utilisateur);
+    }
+
+    public void delete(Long id) {
+        utilisateurRepository.deleteById(id);
+    }
+}
