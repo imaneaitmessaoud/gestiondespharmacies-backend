@@ -1,10 +1,13 @@
 package com.pharmactrl.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.pharmactrl.dto.MedicamentCreateDTO;
+import com.pharmactrl.dto.MedicamentDTO;
 import com.pharmactrl.model.Medicament;
 import com.pharmactrl.repository.MedicamentRepository;
 import com.pharmactrl.repository.CategorieRepository;
@@ -34,6 +37,10 @@ public class MedicamentService {
         alerteService.verifierMedicament(saved);
         return saved;
     }
+    public Optional<Medicament> getMedicamentById(Long id) {
+        return medicamentRepository.findById(id);
+    }
+    
 
     public void supprimerMedicament(Long id) {
         medicamentRepository.deleteById(id);
@@ -60,4 +67,39 @@ public class MedicamentService {
 
         return medicamentRepository.save(med);
     }
+    public MedicamentDTO convertirEnDTO(Medicament medicament) {
+    MedicamentDTO dto = new MedicamentDTO();
+    dto.setId(medicament.getId());
+    dto.setNom(medicament.getNom());
+    dto.setCode(medicament.getCode());
+    dto.setPrix(medicament.getPrix());
+    if (medicament.getCategorie() != null) {
+        dto.setCategorieNom(medicament.getCategorie().getNom());
+    }
+    return dto;
+}
+public Medicament ajouterMedicament(MedicamentCreateDTO dto) {
+    Medicament medicament = new Medicament();
+
+    medicament.setNom(dto.getNom());
+    medicament.setCode(dto.getCode());
+    medicament.setDateExpiration(dto.getDateExpiration());
+    medicament.setPrix(dto.getPrix());
+    medicament.setQuantite(dto.getQuantite());
+    medicament.setSeuilAlerte(dto.getSeuilAlerte());
+
+    // Associer la catégorie via ID
+    medicament.setCategorie(
+        categorieRepository.findById(dto.getCategorieId())
+            .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"))
+    );
+
+    Medicament saved = medicamentRepository.save(medicament);
+
+    // Vérification d'alerte après ajout
+    alerteService.verifierMedicament(saved);
+
+    return saved;
+}
+
 }

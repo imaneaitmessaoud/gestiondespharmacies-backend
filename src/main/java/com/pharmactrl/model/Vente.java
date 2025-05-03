@@ -71,7 +71,16 @@ private List<Quantite> quantites;
             this.quantites = quantites;
         }
 
-      
+        @ManyToOne
+        private Utilisateur utilisateur;
+        
+        public Utilisateur getUtilisateur() {
+            return utilisateur;
+        }
+        
+        public void setUtilisateur(Utilisateur utilisateur) {
+            this.utilisateur = utilisateur;
+        }
         
         
 

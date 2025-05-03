@@ -6,18 +6,23 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
+
 
 import com.pharmactrl.model.Alerte;
 import com.pharmactrl.model.Medicament;
 import com.pharmactrl.model.TypeAlerte;
 import com.pharmactrl.repository.AlerteRepository;
+import com.pharmactrl.repository.MedicamentRepository;
 
 @Service
 public class AlerteService {
 
     @Autowired
     private AlerteRepository alerteRepository;
-
+    @Autowired
+    private MedicamentRepository medicamentRepository;
+ 
     public void verifierMedicament(Medicament medicament) {
         if (medicament.getQuantite() <= medicament.getSeuilAlerte()) {
             creerAlerte(medicament, TypeAlerte.STOCK_FAIBLE, "Stock faible pour " + medicament.getNom());
@@ -27,15 +32,28 @@ public class AlerteService {
             creerAlerte(medicament, TypeAlerte.PEREMPTION, "Expiration proche pour " + medicament.getNom());
         }
     }
+//hna fine bdalte 
+private void creerAlerte(Medicament medicament, TypeAlerte type, String message) {
+    LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
+    LocalDateTime endOfDay = startOfDay.plusDays(1);
 
-    private void creerAlerte(Medicament medicament, TypeAlerte type, String message) {
-        Alerte alerte = new Alerte();
-        alerte.setType(type);
-        alerte.setMessage(message);
-        alerte.setDateCreation(LocalDateTime.now());
-        alerte.setMedicament(medicament);
-        alerteRepository.save(alerte);
-    }
+    boolean dejaAlerteAujourdHui = !alerteRepository
+        .findByMedicamentAndTypeAndEstLueFalseAndDateCreationBetween(
+            medicament, type, startOfDay, endOfDay
+        ).isEmpty();
+
+    if (dejaAlerteAujourdHui) return;
+
+    Alerte alerte = new Alerte();
+    alerte.setType(type);
+    alerte.setMessage(message);
+    alerte.setDateCreation(LocalDateTime.now());
+    alerte.setMedicament(medicament);
+    alerte.setEstLue(false);
+    alerteRepository.save(alerte);
+}
+
+    
 
     public List<Alerte> getAlertes() {
         return alerteRepository.findAll();
@@ -47,4 +65,16 @@ public class AlerteService {
         alerte.setEstLue(true);
         return alerteRepository.save(alerte);
     }
+    // Vérifie tous les médicaments pour créer des alertes automatiquement
+    public void verifierTousLesMedicaments() {
+        medicamentRepository.findAll().forEach(this::verifierMedicament);
+    }
+    
+    @Scheduled(cron = "0 0 0 * * ?") // tous les jours à minuit
+public void planifierVerification() {
+    System.out.println(" Vérification automatique des alertes déclenchée à : " + LocalDateTime.now());
+    verifierTousLesMedicaments();
+}
+
+
 }

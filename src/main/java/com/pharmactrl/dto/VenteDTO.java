@@ -7,6 +7,7 @@ public class VenteDTO {
     private LocalDateTime dateVente;
     private int quantiteVendue;
     private String medicamentNom;
+    private String utilisateurEmail; // <-- Nouveau champ
 
     // Getters & Setters
     public Long getId() {
@@ -39,5 +40,13 @@ public class VenteDTO {
 
     public void setMedicamentNom(String medicamentNom) {
         this.medicamentNom = medicamentNom;
+    }
+
+    public String getUtilisateurEmail() {
+        return utilisateurEmail;
+    }
+
+    public void setUtilisateurEmail(String utilisateurEmail) {
+        this.utilisateurEmail = utilisateurEmail;
     }
 }

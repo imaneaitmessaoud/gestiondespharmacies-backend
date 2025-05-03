@@ -1,17 +1,14 @@
 package com.pharmactrl.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import com.pharmactrl.dto.MedicamentCreateDTO;
+import com.pharmactrl.dto.MedicamentDTO;
 import com.pharmactrl.model.Medicament;
 import com.pharmactrl.service.MedicamentService;
 
@@ -27,9 +24,17 @@ public class MedicamentController {
         return medicamentService.getAllMedicaments();
     }
 
+    //  version correcte avec MedicamentCreateDTO
     @PostMapping
-    public Medicament ajouterMedicament(@RequestBody Medicament medicament) {
-        return medicamentService.ajouterMedicament(medicament);
+    public Medicament ajouterMedicament(@RequestBody MedicamentCreateDTO dto) {
+        return medicamentService.ajouterMedicament(dto);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Medicament> getMedicamentById(@PathVariable Long id) {
+        Medicament medicament = medicamentService.getMedicamentById(id)
+                .orElseThrow(() -> new RuntimeException("Médicament non trouvé avec l'id : " + id));
+        return ResponseEntity.ok(medicament);
     }
 
     @PutMapping("/{id}")
@@ -40,5 +45,12 @@ public class MedicamentController {
     @DeleteMapping("/{id}")
     public void supprimerMedicament(@PathVariable Long id) {
         medicamentService.supprimerMedicament(id);
+    }
+
+    @GetMapping("/dto")
+    public List<MedicamentDTO> getAllMedicamentDTOs() {
+        return medicamentService.getAllMedicaments().stream()
+                .map(medicamentService::convertirEnDTO)
+                .collect(Collectors.toList());
     }
 }

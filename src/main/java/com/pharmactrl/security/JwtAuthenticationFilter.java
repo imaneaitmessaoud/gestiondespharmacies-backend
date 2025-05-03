@@ -42,10 +42,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().write(" Token manquant ou invalide");
+            filterChain.doFilter(request, response);
             return;
         }
+        
 
         jwt = authHeader.substring(7);
         userEmail = jwtUtil.extractUsername(jwt);

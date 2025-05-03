@@ -1,5 +1,6 @@
 package com.pharmactrl.service;
 
+import com.pharmactrl.dto.UtilisateurDTO;
 import com.pharmactrl.model.Utilisateur;
 import com.pharmactrl.repository.UtilisateurRepositoray;
 
@@ -18,7 +19,9 @@ public class UtilisateurService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+    public List<Utilisateur> getAllUtilisateurs() {
+        return utilisateurRepository.findAll();
+    }
     public List<Utilisateur> getAll() {
         return utilisateurRepository.findAll();
     }
@@ -52,4 +55,12 @@ public class UtilisateurService {
     public void delete(Long id) {
         utilisateurRepository.deleteById(id);
     }
+    public UtilisateurDTO convertirEnDTO(Utilisateur utilisateur) {
+    UtilisateurDTO dto = new UtilisateurDTO();
+    dto.setNom(utilisateur.getNom());
+    dto.setPrenom(utilisateur.getPrenom());
+    dto.setEmail(utilisateur.getEmail());
+    dto.setRole(utilisateur.getRole().name());
+    return dto;
+}
 }

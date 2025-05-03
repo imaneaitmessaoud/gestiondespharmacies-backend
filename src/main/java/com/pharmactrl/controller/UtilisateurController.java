@@ -1,5 +1,6 @@
 package com.pharmactrl.controller;
 
+import com.pharmactrl.dto.UtilisateurDTO;
 import com.pharmactrl.model.Utilisateur;
 import com.pharmactrl.service.UtilisateurService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/utilisateurs")
@@ -19,7 +21,7 @@ public class UtilisateurController {
     public List<Utilisateur> getAll() {
         return utilisateurService.getAll();
     }
-
+   
     @GetMapping("/{id}")
     public Optional<Utilisateur> getById(@PathVariable Long id) {
         return utilisateurService.getById(id);
@@ -39,4 +41,12 @@ public class UtilisateurController {
     public void delete(@PathVariable Long id) {
         utilisateurService.delete(id);
     }
+   
+@GetMapping("/dto")
+public List<UtilisateurDTO> getAllDTOs() {
+    return utilisateurService.getAllUtilisateurs().stream()
+            .map(utilisateurService::convertirEnDTO)
+            .collect(Collectors.toList());
+}
+
 }

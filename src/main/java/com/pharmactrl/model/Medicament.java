@@ -40,7 +40,7 @@ public class Medicament {
     private LocalDate dateExpiration;
     private int quantite;
     private int seuilAlerte;
-    private double prix; // N'oublie pas le prix si tu l'utilises
+    private double prix; 
 
     public Long getId() {
         return id;
