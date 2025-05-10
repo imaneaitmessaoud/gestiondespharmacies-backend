@@ -42,6 +42,9 @@ public class CategorieService {
     public void delete(Long id) {
         categorieRepository.deleteById(id);
     }
-   
+   public List<Categorie> searchByNom(String nom) {
+    return categorieRepository.findByNomContainingIgnoreCase(nom);
+}
+
 
 }

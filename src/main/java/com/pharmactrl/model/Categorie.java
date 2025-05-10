@@ -14,7 +14,7 @@ public class Categorie {
     private String nom;
     private String description;
 
-    // Getter pour ID (important !)
+    // Getter pour ID 
     public Long getId() {
         return id;
     }

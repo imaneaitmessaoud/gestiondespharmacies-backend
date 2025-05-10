@@ -28,12 +28,15 @@ public class AuthController {
     public Map<String, String> login(@RequestBody Map<String, String> authRequest) {
         String email = authRequest.get("email");
         String password = authRequest.get("password");
-
+    
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+    
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        String token = jwtUtil.generateAccessToken(userDetails.getUsername());
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails.getUsername());
-
+    
+        //  Passe l'objet userDetails ici
+        String token = jwtUtil.generateAccessToken(userDetails);
+        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+    
         Map<String, String> response = new HashMap<>();
         response.put("accessToken", token);
         response.put("refreshToken", refreshToken);
@@ -56,13 +59,14 @@ public class AuthController {
     public Map<String, String> refreshToken(@RequestBody Map<String, String> body) {
         String refreshToken = body.get("refreshToken");
     
-        // Vérifie s'il est encore valide
         if (jwtUtil.isTokenExpired(refreshToken)) {
             throw new RuntimeException("Refresh token expiré !");
         }
     
         String email = jwtUtil.extractUsername(refreshToken);
-        String newAccessToken = jwtUtil.generateAccessToken(email);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email); //  obligatoire
+    
+        String newAccessToken = jwtUtil.generateAccessToken(userDetails); //  maintenant correct
     
         Map<String, String> response = new HashMap<>();
         response.put("accessToken", newAccessToken);

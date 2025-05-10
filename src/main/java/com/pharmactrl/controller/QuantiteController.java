@@ -25,10 +25,9 @@ public class QuantiteController {
 
     // Récupérer toutes les quantités
     @GetMapping
-    public List<Quantite> getAll() {
-        return quantiteService.getAll();
+    public List<QuantiteDTO> getAll() {
+        return quantiteService.getAllDTOs();
     }
-
     //  Récupérer toutes les quantités en DTO
     @GetMapping("/dto")
     public List<QuantiteDTO> getAllDTO() {

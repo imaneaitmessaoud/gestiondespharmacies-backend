@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @Entity
@@ -25,7 +26,9 @@ public class Alerte {
     private LocalDateTime dateCreation;
 
     @ManyToOne
-    private Medicament medicament;
+@JoinColumn(name = "medicament_id", nullable = false)
+private Medicament medicament;
+
 
     // Getters & Setters
     public Long getId() {

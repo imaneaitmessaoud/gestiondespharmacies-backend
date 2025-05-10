@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.pharmactrl.dto.MedicamentCreateDTO;
 import com.pharmactrl.dto.MedicamentDTO;
+import com.pharmactrl.dto.MedicamentUpdateDTO;
 import com.pharmactrl.model.Medicament;
 import com.pharmactrl.repository.MedicamentRepository;
 import com.pharmactrl.repository.CategorieRepository;
@@ -50,23 +51,27 @@ public class MedicamentService {
         return medicamentRepository.findAll();
     }
 
-    public Medicament update(Long id, Medicament m) {
-        Medicament med = medicamentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Médicament non trouvé"));
+    public Medicament update(Long id, MedicamentUpdateDTO dto) {
+    Medicament med = medicamentRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Médicament non trouvé"));
 
-        med.setNom(m.getNom());
-        med.setCode(m.getCode());
-        med.setCategorie(
-            categorieRepository.findById(m.getCategorie().getId())
-                .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"))
-        );
-        med.setDateExpiration(m.getDateExpiration());
-        med.setPrix(m.getPrix());
-        med.setQuantite(m.getQuantite());
-        med.setSeuilAlerte(m.getSeuilAlerte());
+    med.setNom(dto.getNom());
+    med.setCode(dto.getCode());
+    med.setDateExpiration(dto.getDateExpiration());
+    med.setPrix(dto.getPrix());
+    med.setQuantite(dto.getQuantite());
+    med.setSeuilAlerte(dto.getSeuilAlerte());
 
-        return medicamentRepository.save(med);
-    }
+    med.setCategorie(
+        categorieRepository.findById(dto.getCategorieId())
+            .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"))
+    );
+
+    Medicament updated = medicamentRepository.save(med);
+    alerteService.verifierMedicament(updated); // Re-vérifie les alertes
+    return updated;
+}
+
     public MedicamentDTO convertirEnDTO(Medicament medicament) {
     MedicamentDTO dto = new MedicamentDTO();
     dto.setId(medicament.getId());
@@ -79,6 +84,9 @@ public class MedicamentService {
     return dto;
 }
 public Medicament ajouterMedicament(MedicamentCreateDTO dto) {
+    if (medicamentRepository.existsByCode(dto.getCode())) {
+        throw new RuntimeException("Un médicament avec ce code existe déjà");
+    }
     Medicament medicament = new Medicament();
 
     medicament.setNom(dto.getNom());

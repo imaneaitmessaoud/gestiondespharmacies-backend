@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.pharmactrl.dto.MedicamentCreateDTO;
 import com.pharmactrl.dto.MedicamentDTO;
+import com.pharmactrl.dto.MedicamentUpdateDTO;
 import com.pharmactrl.model.Medicament;
 import com.pharmactrl.service.MedicamentService;
 
@@ -37,15 +38,17 @@ public class MedicamentController {
         return ResponseEntity.ok(medicament);
     }
 
-    @PutMapping("/{id}")
-    public Medicament update(@PathVariable Long id, @RequestBody Medicament m) {
-        return medicamentService.update(id, m);
-    }
+   @PutMapping("/{id}")
+public Medicament updateMedicament(@PathVariable Long id, @RequestBody MedicamentUpdateDTO dto) {
+    return medicamentService.update(id, dto);
+}
 
-    @DeleteMapping("/{id}")
-    public void supprimerMedicament(@PathVariable Long id) {
-        medicamentService.supprimerMedicament(id);
-    }
+
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> supprimer(@PathVariable Long id) {
+    medicamentService.supprimerMedicament(id);
+    return ResponseEntity.noContent().build();
+}
 
     @GetMapping("/dto")
     public List<MedicamentDTO> getAllMedicamentDTOs() {

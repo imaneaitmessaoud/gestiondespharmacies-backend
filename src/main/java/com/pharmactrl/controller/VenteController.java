@@ -1,65 +1,73 @@
 package com.pharmactrl.controller;
 
+import com.pharmactrl.dto.VenteCreateDTO;
+import com.pharmactrl.dto.VenteDTO;
+import com.pharmactrl.model.Vente;
+import com.pharmactrl.service.VenteService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import com.pharmactrl.dto.VenteDTO;
-import com.pharmactrl.dto.VenteRequestDTO;
-import com.pharmactrl.model.Vente;
-import com.pharmactrl.service.VenteService;
-
 @RestController
 @RequestMapping("/api/ventes")
+@CrossOrigin(origins = "*")
 public class VenteController {
 
     @Autowired
     private VenteService venteService;
 
-    //  Ajouter une vente
+    // Ajouter une vente
     @PostMapping
-    public Vente ajouterVente(@RequestBody Vente vente) {
-        return venteService.ajouterVente(vente);
+    public Vente ajouterVente(@RequestBody VenteCreateDTO dto) {
+        return venteService.ajouterVente(dto);
     }
 
-    //  Supprimer une vente par ID
-    @DeleteMapping("/{id}")
+    // Supprimer une vente par ID
+    @DeleteMapping("/delete/{id}")
     public void supprimerVente(@PathVariable Long id) {
         venteService.supprimerVente(id);
     }
 
-    // Récupérer toutes les ventes
+    // Modifier une vente par ID  AJOUTÉ ICI
+  @PutMapping("/{id}")
+public Vente modifierVente(@PathVariable Long id, @RequestBody VenteCreateDTO dto) {
+    return venteService.modifierVente(id, dto);
+}
+
+
+
+    // Récupérer toutes les ventes au format DTO
+    @GetMapping("/dto")
+    public List<VenteDTO> getAllVenteDTO() {
+        return venteService.getAllVentes()
+                .stream()
+                .map(venteService::convertirEnDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Récupérer toutes les ventes (entités complètes)
     @GetMapping
     public List<Vente> getAllVentes() {
         return venteService.getAllVentes();
     }
 
-    // Récupérer toutes les ventes au format DTO
-    @GetMapping("/dto")
-    public List<VenteDTO> getAllVenteDTO() {
-        return venteService.getAllVentes().stream()
-                .map(venteService::convertirEnDTO)
-                .collect(Collectors.toList());
-    }
-
-    // Récupérer une vente par ID
+    // Détail vente complète
     @GetMapping("/{id}")
     public Vente getVenteById(@PathVariable Long id) {
         return venteService.getVenteById(id)
-                .orElseThrow(() -> new RuntimeException("Vente non trouvée avec l'id : " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vente non trouvée avec l'id : " + id));
+
     }
 
-    //  Récupérer une vente au format DTO par ID
+    // Détail vente DTO
     @GetMapping("/dto/{id}")
     public VenteDTO getVenteDTOById(@PathVariable Long id) {
         Vente vente = venteService.getVenteById(id)
                 .orElseThrow(() -> new RuntimeException("Vente non trouvée avec l'id : " + id));
         return venteService.convertirEnDTO(vente);
     }
-    @PostMapping("/dto")
-public Vente ajouterVenteDepuisDTO(@RequestBody VenteRequestDTO dto) {
-    return venteService.ajouterVenteDepuisDTO(dto);
-}
 }

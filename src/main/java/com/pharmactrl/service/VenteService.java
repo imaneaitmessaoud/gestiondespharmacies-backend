@@ -1,17 +1,19 @@
 package com.pharmactrl.service;
 
+import com.pharmactrl.dto.VenteCreateDTO;
 import com.pharmactrl.dto.VenteDTO;
-import com.pharmactrl.dto.VenteRequestDTO;
 import com.pharmactrl.model.Medicament;
-import com.pharmactrl.model.Vente;
+import com.pharmactrl.model.Quantite;
 import com.pharmactrl.model.Utilisateur;
+import com.pharmactrl.model.Vente;
 import com.pharmactrl.repository.MedicamentRepository;
+import com.pharmactrl.repository.QuantiteRepository;
 import com.pharmactrl.repository.UtilisateurRepositoray;
 import com.pharmactrl.repository.VenteRepository;
 
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,7 +23,8 @@ import java.util.Optional;
 @Service
 public class VenteService {
 
-    private final VenteRepository venteRepository;
+    @Autowired
+    private VenteRepository venteRepository;
 
     @Autowired
     private MedicamentRepository medicamentRepository;
@@ -30,31 +33,61 @@ public class VenteService {
     private UtilisateurRepositoray utilisateurRepository;
 
     @Autowired
-    public VenteService(VenteRepository venteRepository) {
-        this.venteRepository = venteRepository;
-    }
+    private QuantiteRepository quantiteRepository;
 
-    public Vente ajouterVente(Vente vente) {
-        vente.setDateVente(LocalDateTime.now());
-        return venteRepository.save(vente);
-    }
+    @Autowired
+    private AlerteService alerteService;
 
+    public Vente ajouterVente(VenteCreateDTO dto) {
+        Vente vente = new Vente();
+        vente.setDateVente(dto.getDateVente() != null ? dto.getDateVente() : LocalDateTime.now());
+
+        // Récupération de l'utilisateur
+        if (dto.getUtilisateurId() != null) {
+            Utilisateur utilisateur = utilisateurRepository.findById(dto.getUtilisateurId())
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+            vente.setUtilisateur(utilisateur);
+        }
+
+        // Enregistrement initial de la vente
+        vente = venteRepository.save(vente);
+
+        // Création des lignes de vente (Quantité)
+        for (VenteCreateDTO.LigneVenteDTO ligne : dto.getLignes()) {
+            Medicament medicament = medicamentRepository.findById(ligne.getMedicamentId())
+                .orElseThrow(() -> new RuntimeException("Médicament introuvable (ID : " + ligne.getMedicamentId() + ")"));
+
+            if (medicament.getQuantite() < ligne.getQuantite()) {
+                throw new RuntimeException("Stock insuffisant pour : " + medicament.getNom());
+            }
+
+            // Réduction du stock
+            medicament.setQuantite(medicament.getQuantite() - ligne.getQuantite());
+            medicamentRepository.save(medicament);
+
+            // Enregistrement de la ligne de vente
+            Quantite q = new Quantite();
+            q.setVente(vente);
+            q.setMedicament(medicament);
+            q.setQuantite(ligne.getQuantite());
+            quantiteRepository.save(q);
+
+            // Vérification des alertes
+            alerteService.verifierMedicament(medicament);
+        }
+
+        return vente;
+    }
+    @Transactional
     public List<Vente> getAllVentes() {
-        return venteRepository.findAll();
+        return venteRepository.findAllWithLignes();
+
     }
 
-    public Optional<Vente> getVenteById(Long id) {
-        return venteRepository.findById(id);
-    }
+   public Optional<Vente> getVenteById(Long id) {
+    return venteRepository.findByIdWithLignes(id);
+}
 
-    public Vente updateVente(Long id, Vente venteDetails) {
-        return venteRepository.findById(id).map(vente -> {
-            vente.setDateVente(venteDetails.getDateVente());
-            vente.setQuantiteVendue(venteDetails.getQuantiteVendue());
-            vente.setMedicament(venteDetails.getMedicament());
-            return venteRepository.save(vente);
-        }).orElseThrow(() -> new RuntimeException("Vente non trouvée avec l'id : " + id));
-    }
 
     public void supprimerVente(Long id) {
         venteRepository.deleteById(id);
@@ -63,42 +96,55 @@ public class VenteService {
     public VenteDTO convertirEnDTO(Vente vente) {
         VenteDTO dto = new VenteDTO();
         dto.setId(vente.getId());
-        dto.setQuantiteVendue(vente.getQuantiteVendue());
         dto.setDateVente(vente.getDateVente());
-    
-        if (vente.getMedicament() != null) {
-            dto.setMedicamentNom(vente.getMedicament().getNom());
-        }
     
         if (vente.getUtilisateur() != null) {
             dto.setUtilisateurEmail(vente.getUtilisateur().getEmail());
         }
     
+        //  Forcer le chargement de la collection Lazy
+        List<Quantite> lignes = vente.getLignesDeVente();
+        int totalQuantite = lignes.stream().mapToInt(Quantite::getQuantite).sum();
+    
+        dto.setQuantiteVendue(totalQuantite);
+    
+        if (!lignes.isEmpty()) {
+            dto.setMedicamentNom(lignes.get(0).getMedicament().getNom());
+        }
+    
         return dto;
     }
-    
+   // Ajoute cette méthode dans VenteService.java
+public Vente modifierVente(Long id, VenteCreateDTO dto) {
+    Vente vente = venteRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Vente non trouvée"));
 
-    public Vente ajouterVenteDepuisDTO(VenteRequestDTO dto) {
-        Medicament medicament = medicamentRepository.findById(dto.getMedicamentId())
+    vente.setDateVente(dto.getDateVente());
+
+    if (dto.getUtilisateurId() != null) {
+        Utilisateur utilisateur = utilisateurRepository.findById(dto.getUtilisateurId())
+            .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+        vente.setUtilisateur(utilisateur);
+    }
+
+    // Supprimer les anciennes lignes (quantités)
+    List<Quantite> anciennes = quantiteRepository.findByVenteId(id);
+    quantiteRepository.deleteAll(anciennes);
+
+    // Ajouter les nouvelles lignes
+    for (VenteCreateDTO.LigneVenteDTO ligne : dto.getLignes()) {
+        Medicament medicament = medicamentRepository.findById(ligne.getMedicamentId())
             .orElseThrow(() -> new RuntimeException("Médicament introuvable"));
 
-        // Récupérer l'utilisateur connecté
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
-
-        Vente vente = new Vente();
-        vente.setDateVente(dto.getDateVente());
-        vente.setQuantiteVendue(dto.getQuantiteVendue());
-        vente.setMedicament(medicament);
-        vente.setUtilisateur(utilisateur); // <-- Lien utilisateur
-
-        // Décrémenter le stock
-        medicament.setQuantite(medicament.getQuantite() - dto.getQuantiteVendue());
-        medicamentRepository.save(medicament);
-
-        return venteRepository.save(vente);
+        Quantite q = new Quantite();
+        q.setVente(vente);
+        q.setMedicament(medicament);
+        q.setQuantite(ligne.getQuantite());
+        quantiteRepository.save(q);
     }
+
+    return venteRepository.save(vente);
+}
+
+    
 }

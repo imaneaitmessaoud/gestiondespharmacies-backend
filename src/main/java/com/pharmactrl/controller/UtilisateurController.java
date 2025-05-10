@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,10 @@ public List<UtilisateurDTO> getAllDTOs() {
     return utilisateurService.getAllUtilisateurs().stream()
             .map(utilisateurService::convertirEnDTO)
             .collect(Collectors.toList());
+}
+@PutMapping("/password/{id}")
+public void changePassword(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    utilisateurService.changePassword(id, body.get("newPassword"));
 }
 
 }

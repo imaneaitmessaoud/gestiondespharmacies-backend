@@ -2,7 +2,7 @@ package com.pharmactrl.model;
 
 import jakarta.persistence.*;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -18,12 +18,14 @@ public class Quantite {
     private int quantite;
 
     @ManyToOne
-@JsonIgnoreProperties("quantites") // ignore la liste des quantités dans Medicament
-private Medicament medicament;
+    @JoinColumn(name = "vente_id")
+    @JsonIgnore
+    private Vente vente;
 
 @ManyToOne
-@JsonIgnoreProperties("quantites")
-private Vente vente;
+@JoinColumn(name = "medicament_id")
+private Medicament medicament;
+
 
     // Getters & Setters
     public Long getId() {

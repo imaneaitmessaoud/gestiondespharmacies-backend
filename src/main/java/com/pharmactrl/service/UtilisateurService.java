@@ -29,11 +29,18 @@ public class UtilisateurService {
     public Optional<Utilisateur> getById(Long id) {
         return utilisateurRepository.findById(id);
     }
+    public Optional<Utilisateur> findByEmail(String email) {
+        return utilisateurRepository.findByEmail(email);
+    }
 
     public Utilisateur create(Utilisateur utilisateur) {
+        if (utilisateurRepository.findByEmail(utilisateur.getEmail()).isPresent()) {
+            throw new RuntimeException("Cet email est déjà utilisé.");
+        }
         utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
         return utilisateurRepository.save(utilisateur);
     }
+    
 
     public Utilisateur update(Long id, Utilisateur updated) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
@@ -63,4 +70,12 @@ public class UtilisateurService {
     dto.setRole(utilisateur.getRole().name());
     return dto;
 }
+
+public void changePassword(Long id, String newPassword) {
+    Utilisateur utilisateur = utilisateurRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+    utilisateur.setMotDePasse(passwordEncoder.encode(newPassword));
+    utilisateurRepository.save(utilisateur);
+}
+
 }

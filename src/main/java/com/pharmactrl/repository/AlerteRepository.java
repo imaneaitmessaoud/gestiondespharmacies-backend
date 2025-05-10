@@ -24,4 +24,6 @@ public interface AlerteRepository extends JpaRepository<Alerte, Long> {
     
     // (Optionnel) Liste toutes les alertes non lues
     List<Alerte> findByEstLueFalse();
+    void deleteByEstLueTrue();
+
 }

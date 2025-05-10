@@ -3,6 +3,7 @@ package com.pharmactrl.service;
 import com.pharmactrl.model.Quantite;
 import com.pharmactrl.model.Medicament;
 import com.pharmactrl.model.Vente;
+import com.pharmactrl.model.Utilisateur;
 import com.pharmactrl.repository.QuantiteRepository;
 import com.pharmactrl.repository.MedicamentRepository;
 import com.pharmactrl.repository.VenteRepository;
@@ -27,14 +28,13 @@ public class QuantiteService {
     @Autowired
     private VenteRepository venteRepository;
 
-    //  Ajouter une quantité
+    // Ajouter une quantité
     public Quantite ajouterQuantite(Quantite quantite) {
-        // vérifier si medicament existe
         Optional<Medicament> medicamentOpt = medicamentRepository.findById(quantite.getMedicament().getId());
         Optional<Vente> venteOpt = venteRepository.findById(quantite.getVente().getId());
 
         if (medicamentOpt.isEmpty() || venteOpt.isEmpty()) {
-            throw new IllegalArgumentException("Medicament ou Vente introuvable !");
+            throw new IllegalArgumentException("Médicament ou Vente introuvable !");
         }
 
         quantite.setMedicament(medicamentOpt.get());
@@ -48,7 +48,7 @@ public class QuantiteService {
         return quantiteRepository.findAll();
     }
 
-    //  Obtenir une quantité par ID
+    // Obtenir une quantité par ID
     public Quantite getById(Long id) {
         return quantiteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Quantité non trouvée avec l'id: " + id));
@@ -59,33 +59,46 @@ public class QuantiteService {
         quantiteRepository.deleteById(id);
     }
 
-    // Convertir en DTO
+    // Convertir en DTO complet
     public QuantiteDTO toDTO(Quantite quantite) {
-        String nomMed = quantite.getMedicament() != null ? quantite.getMedicament().getNom() : null;
-        String dateVente = quantite.getVente() != null && quantite.getVente().getDateVente() != null
-                ? quantite.getVente().getDateVente().toString()
-                : null;
+        Long medicamentId = null;
+        String medicamentNom = null;
+        Long venteId = null;
+        String dateVente = null;
+        String utilisateurEmail = null;
+
+        if (quantite.getMedicament() != null) {
+            medicamentId = quantite.getMedicament().getId();
+            medicamentNom = quantite.getMedicament().getNom();
+        }
+
+        if (quantite.getVente() != null) {
+            venteId = quantite.getVente().getId();
+            if (quantite.getVente().getDateVente() != null) {
+                dateVente = quantite.getVente().getDateVente().toString();
+            }
+            Utilisateur utilisateur = quantite.getVente().getUtilisateur();
+            if (utilisateur != null) {
+                utilisateurEmail = utilisateur.getEmail();
+            }
+        }
 
         return new QuantiteDTO(
                 quantite.getId(),
                 quantite.getQuantite(),
-                nomMed,
-                dateVente
+                medicamentId,
+                medicamentNom,
+                venteId,
+                dateVente,
+                utilisateurEmail
         );
     }
 
-    //  Liste des DTOs
+    // Liste des DTOs
     public List<QuantiteDTO> getAllDTOs() {
-        List<Quantite> quantites = quantiteRepository.findAll();
-    
-        return quantites.stream().map(q -> {
-            String nomMed = q.getMedicament() != null ? q.getMedicament().getNom() : null;
-            String dateVente = q.getVente() != null && q.getVente().getDateVente() != null
-                               ? q.getVente().getDateVente().toString()
-                               : null;
-    
-            return new QuantiteDTO(q.getId(), q.getQuantite(), nomMed, dateVente);
-        }).collect(Collectors.toList());
+        return quantiteRepository.findAll()
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
-    
 }

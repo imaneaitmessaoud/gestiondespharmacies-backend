@@ -15,6 +15,8 @@ import com.pharmactrl.model.TypeAlerte;
 import com.pharmactrl.repository.AlerteRepository;
 import com.pharmactrl.repository.MedicamentRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class AlerteService {
 
@@ -24,15 +26,17 @@ public class AlerteService {
     private MedicamentRepository medicamentRepository;
  
     public void verifierMedicament(Medicament medicament) {
-        if (medicament.getQuantite() <= medicament.getSeuilAlerte()) {
-            creerAlerte(medicament, TypeAlerte.STOCK_FAIBLE, "Stock faible pour " + medicament.getNom());
-        }
-
-        if (medicament.getDateExpiration().isBefore(LocalDate.now().plusDays(30))) {
-            creerAlerte(medicament, TypeAlerte.PEREMPTION, "Expiration proche pour " + medicament.getNom());
-        }
+    if (medicament.getQuantite() <= medicament.getSeuilAlerte()) {
+        creerAlerte(medicament, TypeAlerte.STOCK_FAIBLE, "Stock faible pour " + medicament.getNom());
     }
-//hna fine bdalte 
+
+    if (medicament.getDateExpiration().isBefore(LocalDate.now().plusDays(30))) {
+        creerAlerte(medicament, TypeAlerte.PEREMPTION, "Expiration proche pour " + medicament.getNom());
+    }
+}
+
+
+
 private void creerAlerte(Medicament medicament, TypeAlerte type, String message) {
     LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
     LocalDateTime endOfDay = startOfDay.plusDays(1);
@@ -52,6 +56,7 @@ private void creerAlerte(Medicament medicament, TypeAlerte type, String message)
     alerte.setEstLue(false);
     alerteRepository.save(alerte);
 }
+
 
     
 
@@ -74,6 +79,18 @@ private void creerAlerte(Medicament medicament, TypeAlerte type, String message)
 public void planifierVerification() {
     System.out.println(" Vérification automatique des alertes déclenchée à : " + LocalDateTime.now());
     verifierTousLesMedicaments();
+}
+@Transactional
+public void marquerToutesCommeLues() {
+    List<Alerte> nonLues = alerteRepository.findByEstLueFalse();
+    for (Alerte alerte : nonLues) {
+        alerte.setEstLue(true);
+    }
+    alerteRepository.saveAll(nonLues);
+}
+@Transactional
+public void supprimerToutesLesAlertesLues() {
+    alerteRepository.deleteByEstLueTrue();
 }
 
 

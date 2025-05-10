@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -48,5 +49,8 @@ public class CategorieController {
         categorieService.delete(id);
     }
    
-
+@GetMapping("/search")
+public List<Categorie> searchByNom(@RequestParam String nom) {
+    return categorieService.searchByNom(nom);
+}
 }

@@ -6,8 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-
-
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,11 +23,13 @@ public class Medicament {
     private Long id;
     private String nom;
     private String code;
-
+//@JsonIgnore
     @ManyToOne
     @JoinColumn(name = "categorie_id") // FK dans la table "medicament"
+    
     private Categorie categorie;
-
+   
+    
     public Categorie getCategorie() {
         return categorie;
     }
@@ -108,4 +109,15 @@ private List<Quantite> quantites;
     public void setQuantites(List<Quantite> quantites) {
         this.quantites = quantites;
 } 
+@OneToMany(mappedBy = "medicament", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonIgnore
+private List<Alerte> alertes;
+    
+        public List<Alerte> getAlertes() {
+            return alertes;
+        }
+    
+        public void setAlertes(List<Alerte> alertes) {
+            this.alertes = alertes;
+        }
 }

@@ -1,35 +1,34 @@
 package com.pharmactrl.model;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-
- @JsonInclude(JsonInclude.Include.NON_NULL)
 @Entity
 public class Vente {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private LocalDateTime dateVente;
 
+    @ManyToOne
+    @JoinColumn(name = "utilisateur_id")
+    private Utilisateur utilisateur;
+
+    // Association avec les quantités (ou lignes de vente)
+    @OneToMany(mappedBy = "vente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+private List<Quantite> lignesDeVente;
+
+    // Getters et setters
     public Long getId() {
         return id;
     }
-    
+
     public void setId(Long id) {
         this.id = id;
     }
-
 
     public LocalDateTime getDateVente() {
         return dateVente;
@@ -38,50 +37,20 @@ public class Vente {
     public void setDateVente(LocalDateTime dateVente) {
         this.dateVente = dateVente;
     }
-    private int quantiteVendue;
 
-    public int getQuantiteVendue() {
-        return quantiteVendue;
+    public Utilisateur getUtilisateur() {
+        return utilisateur;
     }
 
-    public void setQuantiteVendue(int quantiteVendue) {
-        this.quantiteVendue = quantiteVendue;
+    public void setUtilisateur(Utilisateur utilisateur) {
+        this.utilisateur = utilisateur;
     }
-    public Medicament getMedicament() {
-        return medicament;
+
+    public List<Quantite> getLignesDeVente() {
+        return lignesDeVente;
     }
-    
-    public void setMedicament(Medicament medicament) {
-        this.medicament = medicament;
+
+    public void setLignesDeVente(List<Quantite> lignesDeVente) {
+        this.lignesDeVente = lignesDeVente;
     }
-    
-    @ManyToOne
-    private Medicament medicament;
-    
-    @OneToMany(mappedBy = "vente")
-@JsonIgnore
-private List<Quantite> quantites;
-
-    
-        public List<Quantite> getQuantites() {
-            return quantites;
-        }
-    
-        public void setQuantites(List<Quantite> quantites) {
-            this.quantites = quantites;
-        }
-
-        @ManyToOne
-        private Utilisateur utilisateur;
-        
-        public Utilisateur getUtilisateur() {
-            return utilisateur;
-        }
-        
-        public void setUtilisateur(Utilisateur utilisateur) {
-            this.utilisateur = utilisateur;
-        }
-        
-        
-
 }
