@@ -195,7 +195,7 @@ Authorization: Bearer <accessToken>
 ---
 
 ## ✨ Auteur
-##Nom de ton équipe
+##Nom de l'équipe
 Imane Aitmessaoud , Kaoutar Belail
 
 
