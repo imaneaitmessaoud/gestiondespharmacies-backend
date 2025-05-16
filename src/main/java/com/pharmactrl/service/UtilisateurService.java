@@ -32,7 +32,7 @@ public class UtilisateurService {
     public Optional<Utilisateur> findByEmail(String email) {
         return utilisateurRepository.findByEmail(email);
     }
-
+ 
     public Utilisateur create(Utilisateur utilisateur) {
         if (utilisateurRepository.findByEmail(utilisateur.getEmail()).isPresent()) {
             throw new RuntimeException("Cet email est déjà utilisé.");

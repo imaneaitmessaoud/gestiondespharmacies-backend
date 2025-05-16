@@ -35,6 +35,9 @@ private Medicament medicament;
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
     public TypeAlerte getType() {
         return type;
     }

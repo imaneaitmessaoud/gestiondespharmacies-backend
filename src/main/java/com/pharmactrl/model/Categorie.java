@@ -18,7 +18,10 @@ public class Categorie {
     public Long getId() {
         return id;
     }
-
+    // Setter pour ID
+    public void setId(Long id) {
+        this.id = id;
+    }
     public String getNom() {
         return nom;
     }

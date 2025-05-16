@@ -31,6 +31,9 @@ private Medicament medicament;
     public Long getId() {
         return id;
     }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public int getQuantite() {
         return quantite;
