@@ -48,7 +48,16 @@
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
-
+ <!-- Spring Boot Actuator (à ajouter ici) -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+        
+<dependency>
+  <groupId>io.micrometer</groupId>
+  <artifactId>micrometer-registry-prometheus</artifactId>
+</dependency>
         <!-- JJWT - Compatible Java 17+ -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
