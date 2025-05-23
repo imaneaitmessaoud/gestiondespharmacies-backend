@@ -3,6 +3,7 @@ package com.pharmactrl.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+//import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,7 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import static org.springframework.security.config.Customizer.withDefaults;
-import org.springframework.http.HttpMethod;
+
 import java.util.Arrays;
 
 @Configuration
@@ -38,11 +39,13 @@ public class SecurityConfig {
         .cors(withDefaults()) //  nouvelle méthode
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(auth -> auth
+       // .requestMatchers("/api/utilisateurs/**").authenticated()
         .requestMatchers("/api/auth/**").permitAll()
         .requestMatchers("/actuator/**").permitAll()
-        .requestMatchers(HttpMethod.POST, "/api/utilisateurs").permitAll()
-        //.requestMatchers(HttpMethod.POST, "/api/password/reset-request").permitAll()
+        //.requestMatchers(HttpMethod.POST, "/api/utilisateurs").permitAll()
+        .requestMatchers(HttpMethod.POST, "/api/password/reset-request").permitAll()
         .requestMatchers("/api/utilisateurs/**").permitAll()
+        .requestMatchers("/api/utilisateurs/**").hasRole("ADMIN")
         .requestMatchers("/api/ventes/**").permitAll()
         .requestMatchers("/api/medicaments/**").hasRole("PHARMACIEN") 
         .requestMatchers("/api/alertes/**").hasRole("PHARMACIEN")

@@ -15,7 +15,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
     private UtilisateurRepositoray utilisateurRepository;
-
+//appelee automatiquement par spring security
+    // On charge l'utilisateur par son email
+    // On utilise l'interface UserDetailsService de Spring Security
+    // pour charger l'utilisateur et ses rôles
+    // On doit implémenter la méthode loadUserByUsername
+    // qui est appelée par Spring Security lors de l'authentification
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Utilisateur utilisateur = utilisateurRepository.findByEmail(email)

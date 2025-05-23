@@ -115,6 +115,7 @@ public class VenteService {
         return dto;
     }
    // Ajoute cette méthode dans VenteService.java
+@Transactional
 public Vente modifierVente(Long id, VenteCreateDTO dto) {
     Vente vente = venteRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Vente non trouvée"));
@@ -127,20 +128,37 @@ public Vente modifierVente(Long id, VenteCreateDTO dto) {
         vente.setUtilisateur(utilisateur);
     }
 
-    // Supprimer les anciennes lignes (quantités)
+    // 1. Réajuster les stocks des anciennes lignes
     List<Quantite> anciennes = quantiteRepository.findByVenteId(id);
+    for (Quantite ancienne : anciennes) {
+        Medicament med = ancienne.getMedicament();
+        med.setQuantite(med.getQuantite() + ancienne.getQuantite());
+        medicamentRepository.save(med);
+    }
+
+    // 2. Supprimer les anciennes lignes
     quantiteRepository.deleteAll(anciennes);
 
-    // Ajouter les nouvelles lignes
+    // 3. Ajouter les nouvelles lignes en ajustant le stock
     for (VenteCreateDTO.LigneVenteDTO ligne : dto.getLignes()) {
         Medicament medicament = medicamentRepository.findById(ligne.getMedicamentId())
             .orElseThrow(() -> new RuntimeException("Médicament introuvable"));
+
+        if (medicament.getQuantite() < ligne.getQuantite()) {
+            throw new RuntimeException("Stock insuffisant pour : " + medicament.getNom());
+        }
+
+        medicament.setQuantite(medicament.getQuantite() - ligne.getQuantite());
+        medicamentRepository.save(medicament);
 
         Quantite q = new Quantite();
         q.setVente(vente);
         q.setMedicament(medicament);
         q.setQuantite(ligne.getQuantite());
         quantiteRepository.save(q);
+
+        // Vérifie s’il faut déclencher une alerte
+        alerteService.verifierMedicament(medicament);
     }
 
     return venteRepository.save(vente);

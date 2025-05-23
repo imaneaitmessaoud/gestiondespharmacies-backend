@@ -31,6 +31,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         // Ne pas filtrer les routes d'authentification
+        // ou les routes publiques
+        //ignorer les routes d'authentification pour eviter une verification de token inutile lors de la connexion
+        // et de la validation du token
         String path = request.getServletPath();
         if (path.startsWith("/api/auth/")) {
             filterChain.doFilter(request, response);
